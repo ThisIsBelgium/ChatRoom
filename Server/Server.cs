@@ -12,8 +12,10 @@ namespace Server
 {
     class Server
     {
-        public static Client client;
+        Dictionary<String, string> users = new Dictionary<string, string>();
+        public static ServerClient client;
         TcpListener server;
+        bool awaitingConnection;
         public Server()
         {
             server = new TcpListener(IPAddress.Parse("127.0.0.1"), 9999);
@@ -21,9 +23,21 @@ namespace Server
         }
         public void Run()
         {
-            AcceptClient();
-            string message = client.Recieve();
-            Respond(message);
+            do
+            {
+                awaitingConnection = server.Pending();
+                if (awaitingConnection == true)
+                {
+                    AcceptClient();
+                }
+                else if (users.Count == 0)
+                {
+                    AcceptClient();
+                }
+                string message = client.Recieve();
+                Respond(message);
+            }
+            while (users.Count>0);
         }
         private void AcceptClient()
         {
@@ -31,7 +45,9 @@ namespace Server
             clientSocket = server.AcceptTcpClient();
             Console.WriteLine("Connected");
             NetworkStream stream = clientSocket.GetStream();
-            client = new Client(stream, clientSocket);
+            client = new ServerClient(stream, clientSocket);
+            client.UserName = client.Recieve();
+            users.Add(client.UserName, client.UserId);
         }
         private void Respond(string body)
         {

@@ -8,10 +8,10 @@ namespace Server
 {
     class Message
     {
-        public Client sender;
+        public ServerClient sender;
         public string Body;
         public string UserId;
-        public Message(Client Sender, string Body)
+        public Message(ServerClient Sender, string Body)
         {
             sender = Sender;
             this.Body = Body;

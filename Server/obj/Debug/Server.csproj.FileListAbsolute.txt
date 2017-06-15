@@ -12,3 +12,6 @@ C:\Users\guapo\Dropbox\Week 5\ChatroomStarter (2)\ChatroomStarter\ChatroomStarte
 C:\Users\wheeler\Desktop\School\C# git\ChatRoom\Server\bin\Debug\Server.exe.config
 C:\Users\wheeler\Desktop\School\C# git\ChatRoom\Server\obj\Debug\Server.exe
 C:\Users\wheeler\Desktop\School\C# git\ChatRoom\Server\obj\Debug\Server.pdb
+C:\Users\wheeler\Desktop\School\C# git\ChatRoom\Server\bin\Debug\Server.exe
+C:\Users\wheeler\Desktop\School\C# git\ChatRoom\Server\bin\Debug\Server.pdb
+C:\Users\wheeler\Desktop\School\C# git\ChatRoom\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
