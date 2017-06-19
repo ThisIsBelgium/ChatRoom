@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    class Program
+    public interface IClient
     {
-        static void Main(string[] args)
-        {
-            Server server = new Server();
-            server.Run();
-        }
+       
+  
+        void Notify(IClient client);
     }
 }

@@ -21,24 +21,34 @@ namespace Client
         }
         public void Send()
         {
-            string messageString = UI.GetInput();
-            if (messageString == "!logout")
+            while (loggedIn == true)
             {
-                loggedIn = false;
+                string messageString = UI.GetInput();
+                if (messageString == "!logout")
+                {
+                    loggedIn = false;
+                }
+                byte[] message = Encoding.ASCII.GetBytes(messageString);
+                stream.Write(message, 0, message.Count());
             }
-            byte[] message = Encoding.ASCII.GetBytes(messageString);
-            stream.Write(message, 0, message.Count());
         }
         public void Recieve()
         {
-            byte[] recievedMessage = new byte[256];
-            stream.Read(recievedMessage, 0, recievedMessage.Length);
-            UI.DisplayMessage(Encoding.ASCII.GetString(recievedMessage));
+            while (loggedIn==true)
+            {
+                byte[] recievedMessage = new byte[256];
+                stream.Read(recievedMessage, 0, recievedMessage.Length);
+                UI.DisplayMessage(Encoding.ASCII.GetString(recievedMessage));
+            }      
+                
         }
         public void Login()
         {
-            Console.WriteLine("enter your username");
-            Send();
+            Console.WriteLine("Enter your username");
+            string messageString = UI.GetInput();
+            byte[] message = Encoding.ASCII.GetBytes(messageString);
+            stream.Write(message, 0, message.Count());
+
         }
     }
 }

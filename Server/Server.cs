@@ -10,12 +10,14 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    class Server
+    public class Server
     {
+        List<ServerClient> userClients = new List<ServerClient>();
         Dictionary<String, string> users = new Dictionary<string, string>();
+        public Queue<string> messages = new Queue<string>();
         public static ServerClient client;
         TcpListener server;
-        bool awaitingConnection;
+        public bool serverState = true;
         public Server()
         {
             server = new TcpListener(IPAddress.Parse("127.0.0.1"), 9999);
@@ -23,35 +25,61 @@ namespace Server
         }
         public void Run()
         {
-            do
+            string retrievedMessage = null;
+            if (users.Count == 0)
             {
-                awaitingConnection = server.Pending();
-                if (awaitingConnection == true)
-                {
-                    AcceptClient();
-                }
-                else if (users.Count == 0)
-                {
-                    AcceptClient();
-                }
-                string message = client.Recieve();
-                Respond(message);
+                FirstClient();
+                Task acceptClient = Task.Run(() => AcceptClient());
             }
-            while (users.Count>0);
+            while (serverState == true)
+            {
+                if (messages.Count > 0)
+                {
+                    retrievedMessage = messages.Dequeue();
+                    RespondToAll(retrievedMessage);
+                }
+            }
         }
         private void AcceptClient()
+        {
+            do
+            {
+                if (server.Pending() == true)
+                {
+                    TcpClient clientSocket = default(TcpClient);
+                    clientSocket = server.AcceptTcpClient();
+                    Console.WriteLine("Connected");
+                    NetworkStream stream = clientSocket.GetStream();
+                    client = new ServerClient(stream, clientSocket);
+                    AddUser(serverState, client);
+                    Task newUserRecieve = Task.Run(() => client.Recieve(serverState, messages));
+                }
+            }
+            while (serverState == true);
+        }
+        private void RespondToAll(string body)
+        {
+            foreach(ServerClient client in userClients)
+            {
+                client.Send(body);
+            }    
+        }
+        private void FirstClient()
         {
             TcpClient clientSocket = default(TcpClient);
             clientSocket = server.AcceptTcpClient();
             Console.WriteLine("Connected");
             NetworkStream stream = clientSocket.GetStream();
             client = new ServerClient(stream, clientSocket);
-            client.UserName = client.Recieve();
-            users.Add(client.UserName, client.UserId);
+            AddUser(serverState, client);
+            Task newUserRecieve = Task.Run(() => client.Recieve(serverState, messages));
         }
-        private void Respond(string body)
+        private void AddUser(bool serverState, ServerClient client)
         {
-             client.Send(body);
+            client.GetUserName(serverState);
+            users.Add(client.UserName, client.UserId);
+            userClients.Add(client);
+
         }
     }
 }

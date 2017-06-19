@@ -6,9 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
+
 namespace Server
 {
-    public class ServerClient
+    public class ServerClient/*:IClient*/
     {
         NetworkStream stream;
         TcpClient client;
@@ -25,13 +26,33 @@ namespace Server
             byte[] message = Encoding.ASCII.GetBytes(Message);
             stream.Write(message, 0, message.Count());
         }
-        public string Recieve()
+        public void Recieve(bool serverState,Queue<string> messages)
+        {
+            string recievedMessageString = null;
+            while (serverState == true)
+            {
+                byte[] recievedMessage = new byte[256];
+                stream.Read(recievedMessage, 0, recievedMessage.Length);
+                recievedMessageString = Encoding.ASCII.GetString(recievedMessage);
+                Console.WriteLine(recievedMessageString);
+                messages.Enqueue(recievedMessageString);
+            }
+        }
+        public void GetUserName(bool serverState)
+        {
+            UserName = RecieveUserName();
+        }
+        private string RecieveUserName()
         {
             byte[] recievedMessage = new byte[256];
             stream.Read(recievedMessage, 0, recievedMessage.Length);
             string recievedMessageString = Encoding.ASCII.GetString(recievedMessage);
             Console.WriteLine(recievedMessageString);
             return recievedMessageString;
+        }
+        private void NotifyUserLog()
+        {
+
         }
 
     }
