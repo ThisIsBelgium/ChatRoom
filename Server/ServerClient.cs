@@ -9,12 +9,12 @@ using System.IO;
 
 namespace Server
 {
-    public class ServerClient/*:IClient*/
+    public class ServerClient:IClient
     {
         NetworkStream stream;
         TcpClient client;
         public string UserId;
-        public string UserName;
+        public string userName;
         public ServerClient(NetworkStream Stream, TcpClient Client)
         {
             stream = Stream;
@@ -33,26 +33,26 @@ namespace Server
             {
                 byte[] recievedMessage = new byte[256];
                 stream.Read(recievedMessage, 0, recievedMessage.Length);
-                recievedMessageString = Encoding.ASCII.GetString(recievedMessage);
+                recievedMessageString = Encoding.ASCII.GetString(recievedMessage).Replace("\0", string.Empty);
                 Console.WriteLine(recievedMessageString);
-                messages.Enqueue(recievedMessageString);
+                messages.Enqueue(userName + ":" + recievedMessageString);
             }
         }
         public void GetUserName(bool serverState)
         {
-            UserName = RecieveUserName();
+            userName = RecieveUserName();
         }
         private string RecieveUserName()
         {
             byte[] recievedMessage = new byte[256];
             stream.Read(recievedMessage, 0, recievedMessage.Length);
-            string recievedMessageString = Encoding.ASCII.GetString(recievedMessage);
+            string recievedMessageString = Encoding.ASCII.GetString(recievedMessage).Replace("\0", string.Empty);
             Console.WriteLine(recievedMessageString);
             return recievedMessageString;
         }
-        private void NotifyUserLog()
+        public void Notify(IClient client,string body)
         {
-
+            Send(body);
         }
 
     }

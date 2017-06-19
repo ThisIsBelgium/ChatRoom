@@ -10,6 +10,6 @@ namespace Server
     {
        
   
-        void Notify(IClient client);
+        void Notify(IClient client,string body);
     }
 }

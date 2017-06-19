@@ -12,7 +12,7 @@ namespace Server
 {
     public class Server
     {
-        List<ServerClient> userClients = new List<ServerClient>();
+        List<IClient> userClients = new List<IClient>();
         Dictionary<String, string> users = new Dictionary<string, string>();
         public Queue<string> messages = new Queue<string>();
         public static ServerClient client;
@@ -43,7 +43,7 @@ namespace Server
         private void AcceptClient()
         {
             do
-            {
+             {
                 if (server.Pending() == true)
                 {
                     TcpClient clientSocket = default(TcpClient);
@@ -52,6 +52,11 @@ namespace Server
                     NetworkStream stream = clientSocket.GetStream();
                     client = new ServerClient(stream, clientSocket);
                     AddUser(serverState, client);
+                    string body = client.userName + " has joined the room";
+                    foreach(ServerClient client in userClients)
+                    {
+                        client.Notify(client,body);
+                    }
                     Task newUserRecieve = Task.Run(() => client.Recieve(serverState, messages));
                 }
             }
@@ -77,7 +82,7 @@ namespace Server
         private void AddUser(bool serverState, ServerClient client)
         {
             client.GetUserName(serverState);
-            users.Add(client.UserName, client.UserId);
+            users.Add(client.userName, client.UserId);
             userClients.Add(client);
 
         }
