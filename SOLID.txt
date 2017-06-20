@@ -1,0 +1,5 @@
+On my client side I use the single responsibility principle with my send and recieve functions only allowing them to
+do one thing and one thing well
+
+On my server side I use the interface segregation principle by making the server class use every available method in
+the class
