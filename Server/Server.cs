@@ -22,6 +22,7 @@ namespace Server
         {
             server = new TcpListener(IPAddress.Parse("127.0.0.1"), 9999);
             server.Start();
+            Task serverShutdown = Task.Run(() => EndServer());
         }
         public void Run()
         {
@@ -43,47 +44,91 @@ namespace Server
         private void AcceptClient()
         {
             do
-             {
-                if (server.Pending() == true)
+            {
+                try
                 {
-                    TcpClient clientSocket = default(TcpClient);
-                    clientSocket = server.AcceptTcpClient();
-                    Console.WriteLine("Connected");
-                    NetworkStream stream = clientSocket.GetStream();
-                    client = new ServerClient(stream, clientSocket);
-                    AddUser(serverState, client);
-                    string body = client.userName + " has joined the room";
-                    foreach(ServerClient client in userClients)
+                    if (server.Pending() == true)
                     {
-                        client.Notify(client,body);
+                        TcpClient clientSocket = default(TcpClient);
+                        clientSocket = server.AcceptTcpClient();
+                        Console.WriteLine("Connected");
+                        NetworkStream stream = clientSocket.GetStream();
+                        client = new ServerClient(stream, clientSocket);
+                        AddUser(serverState, client);
+                        string body = client.userName + " has joined the room";
+                        foreach (ServerClient client in userClients)
+                        {
+                            client.Notify(client, body);
+                        }
+                        Task newUserRecieve = Task.Run(() => client.Recieve(messages, userClients, users));
                     }
-                    Task newUserRecieve = Task.Run(() => client.Recieve(serverState, messages));
+                }
+                catch
+                {
+
                 }
             }
             while (serverState == true);
         }
         private void RespondToAll(string body)
         {
-            foreach(ServerClient client in userClients)
+            foreach (ServerClient client in userClients)
             {
-                client.Send(body);
-            }    
+                if (body.Contains(client.userName))
+                {
+
+                }
+                else if (body.Contains("!logout"))
+                {
+
+                }
+                else
+                {
+                    client.Send(body);
+                }
+            }
         }
         private void FirstClient()
         {
             TcpClient clientSocket = default(TcpClient);
-            clientSocket = server.AcceptTcpClient();
-            Console.WriteLine("Connected");
-            NetworkStream stream = clientSocket.GetStream();
-            client = new ServerClient(stream, clientSocket);
-            AddUser(serverState, client);
-            Task newUserRecieve = Task.Run(() => client.Recieve(serverState, messages));
+            try
+            {
+                clientSocket = server.AcceptTcpClient();
+                Console.WriteLine("Connected");
+                NetworkStream stream = clientSocket.GetStream();
+                client = new ServerClient(stream, clientSocket);
+                AddUser(serverState, client);
+                Task newUserRecieve = Task.Run(() => client.Recieve(messages, userClients, users));
+            }
+            catch
+            {
+
+            }
+
         }
         private void AddUser(bool serverState, ServerClient client)
         {
             client.GetUserName(serverState);
             users.Add(client.userName, client.UserId);
             userClients.Add(client);
+
+        }
+        private void EndServer()
+        {
+            while (serverState == true)
+            {
+                string logoutMessage = Console.ReadLine();
+                if (logoutMessage == "!end")
+                {
+                    serverState = false;
+                    server.Stop();
+                }
+
+            }
+
+        }
+        private void LogServer()
+        {
 
         }
     }

@@ -13,6 +13,7 @@ namespace Server
     {
         NetworkStream stream;
         TcpClient client;
+        bool clientState = true;
         public string UserId;
         public string userName;
         public ServerClient(NetworkStream Stream, TcpClient Client)
@@ -24,18 +25,39 @@ namespace Server
         public void Send(string Message)
         {
             byte[] message = Encoding.ASCII.GetBytes(Message);
-            stream.Write(message, 0, message.Count());
+            try
+            {
+                stream.Write(message, 0, message.Count());
+            }
+            catch
+            {
+
+            }
         }
-        public void Recieve(bool serverState,Queue<string> messages)
+        public void Recieve(Queue<string> messages, List<IClient> userClients, Dictionary<String, string> users)
         {
             string recievedMessageString = null;
-            while (serverState == true)
+            while (clientState == true)
             {
                 byte[] recievedMessage = new byte[256];
-                stream.Read(recievedMessage, 0, recievedMessage.Length);
-                recievedMessageString = Encoding.ASCII.GetString(recievedMessage).Replace("\0", string.Empty);
-                Console.WriteLine(recievedMessageString);
-                messages.Enqueue(userName + ":" + recievedMessageString);
+                try
+                {
+                    stream.Read(recievedMessage, 0, recievedMessage.Length);
+                    recievedMessageString = Encoding.ASCII.GetString(recievedMessage).Replace("\0", string.Empty);
+                }
+                catch
+                {
+                    recievedMessageString = "has logged out";
+                    users.Remove(userName);
+                    clientState = false;
+                }
+                if(recievedMessageString == "!logout")
+                {
+                    client.GetStream().Close();
+                    client.Close();
+                }
+                Console.WriteLine(userName +": " + recievedMessageString);
+                messages.Enqueue(userName + ": " + recievedMessageString);
             }
         }
         public void GetUserName(bool serverState)
@@ -54,6 +76,5 @@ namespace Server
         {
             Send(body);
         }
-
     }
 }
